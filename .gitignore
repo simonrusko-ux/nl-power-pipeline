@@ -1,0 +1,19 @@
+# Data warehouse — never commit local data
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+
+# Streamlit local secrets/config
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
