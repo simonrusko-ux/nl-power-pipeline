@@ -2,14 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## THE most important rule
-
-**Šimon writes all code himself.** This is a learning/portfolio project — the educational goals (production HTTP clients, layered data modeling, SQL/DuckDB, pipeline design) are the whole point. Do NOT write or edit project code unless explicitly asked. Instead: answer questions, explain concepts, review code, point at root causes when debugging (not patches), and discuss design trade-offs. Hints over solutions.
-
-## Repository setup warning
-
-As of July 2026 this folder is inside a git repo rooted at `/Users/simonrusko` (an unrelated trading project). Before any git operations here, verify `git rev-parse --show-toplevel` points to this project's own repo — if it still points to the home directory, this project needs its own `git init` first.
-
 ## Project overview
 
 `nl-power-pipeline` — a local Python data pipeline that ingests hourly Dutch weather (Open-Meteo) and day-ahead electricity prices + wind/solar generation (Energy-Charts API by Fraunhofer ISE), stores everything in DuckDB, and visualizes weather → renewables → price relationships in a Streamlit dashboard. Bonus phase: next-day price prediction (baselines → LightGBM, time-based split only). Full spec lives in the project owner's notes (v2.0, July 2026).

@@ -15,5 +15,8 @@ venv/
 # Streamlit local secrets/config
 .streamlit/secrets.toml
 
+# Claude Code — personal instructions stay local
+CLAUDE.local.md
+
 # OS
 .DS_Store
