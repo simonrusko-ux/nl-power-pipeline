@@ -1,8 +1,7 @@
 import httpx
-import json
 import logging
 import time
-
+from db import connectDB, init_tables, save_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +15,10 @@ LOCATIONS = {
     "eindhoven":(51.4408, 5.4778)
 }
 
-
 def fetch_data_open_meteo():
+
+    con = connectDB()
+    init_tables(con=con)
 
     last_name = list(LOCATIONS.keys())[-1]
 
@@ -32,12 +33,10 @@ def fetch_data_open_meteo():
         "past_days": 7,
         "forecast_days": 1,}
 
-
         try:
             response = httpx.get(url, params=params, timeout=30.0)
 
             response.raise_for_status()
-            data = response.json()
 
         except httpx.HTTPStatusError as e:
             logger.error("open-meteo %s: HTTP %s — %s", name, e.response.status_code, e.response.text[:200])
@@ -46,11 +45,12 @@ def fetch_data_open_meteo():
             logger.error("open-meteo %s: network error — %r", name, e)
             raise
 
-        print(data,"\n")
-
+        save_api_call(con, "open-meteo", name, response.status_code, response.text)
+        
         if name != last_name:
             time.sleep(1)
-
+        
+    con.close()
 
 
 if __name__ == "__main__":
