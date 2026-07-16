@@ -17,6 +17,33 @@ Both APIs are public JSON, no auth. Everything runs locally; no deployment, no s
 
 Dependencies (pyproject.toml): httpx, tenacity, duckdb, streamlit, pandas, plotly.
 
+## Project structure
+
+```
+weather-project/
+├── run_pipeline.py          # orchestrator: ingest → transform → checks
+├── ingest/
+│   ├── __init__.py
+│   ├── client.py            # shared: httpx setup, retry, pauses
+│   ├── openmeteo.py         # fetch weather → write JSON to raw
+│   └── energy_charts.py     # prices + generation → raw
+├── transform/
+│   ├── runner.py            # thin Python: loads .sql files and runs them
+│   ├── staging.sql          # parsing lives HERE: JSON from raw → typed tables
+│   └── marts.sql            # staging → hourly_wide, daily_summary
+├── quality/
+│   └── checks.py            # checks over finished tables
+├── app/
+│   └── dashboard.py         # Streamlit
+├── tests/
+│   ├── test_staging.py      # parsing and dedup — over small JSON samples
+│   └── test_checks.py
+├── data/                    # warehouse.duckdb (gitignored)
+└── pyproject.toml
+```
+
+Ingest never parses response bodies — it only fetches and stores originals (plus HTTP status). All parsing happens in SQL in staging.
+
 ## Architecture: three-layer DuckDB warehouse
 
 Data flows API → `raw` → `staging` → `marts`, all in `data/warehouse.duckdb` (gitignored):
