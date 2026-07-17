@@ -1,6 +1,6 @@
 import duckdb
 
-def connectDB():
+def connect_db():
     return duckdb.connect("data/warehouse.duckdb")
 
 def init_tables(con):

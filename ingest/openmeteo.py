@@ -1,11 +1,11 @@
 import httpx
 import logging
 import time
-from db import connectDB, init_tables, save_api_call
+from db import connect_db, init_tables, save_api_call
 
 logger = logging.getLogger(__name__)
 
-url = "https://api.open-meteo.com/v1/forecast"
+OPENMETEO_URL = "https://api.open-meteo.com/v1/forecast"
 
 
 LOCATIONS = {
@@ -17,40 +17,46 @@ LOCATIONS = {
 
 def fetch_data_open_meteo():
 
-    con = connectDB()
+    con = connect_db()
     init_tables(con=con)
 
     last_name = list(LOCATIONS.keys())[-1]
 
-    for name, (lat,lon) in LOCATIONS.items():
-        
-        params = {
-        "latitude":lat,
-        "longitude": lon,
-        "hourly": ["temperature_2m", "cloud_cover", "wind_speed_120m", "shortwave_radiation"],
-        "models": "knmi_seamless",
-        "timezone": "GMT",
-        "past_days": 7,
-        "forecast_days": 1,}
+    try:
 
-        try:
-            response = httpx.get(url, params=params, timeout=30.0)
+        for name, (lat,lon) in LOCATIONS.items():
+            
+            params = {
+            "latitude":lat,
+            "longitude": lon,
+            "hourly": ["temperature_2m", "cloud_cover", "wind_speed_120m", "shortwave_radiation"],
+            "models": "knmi_seamless",
+            "timezone": "GMT",
+            "past_days": 7,
+            "forecast_days": 1,}
 
-            response.raise_for_status()
+            try:
+                response = httpx.get(OPENMETEO_URL, params=params, timeout=30.0)
 
-        except httpx.HTTPStatusError as e:
-            logger.error("open-meteo %s: HTTP %s — %s", name, e.response.status_code, e.response.text[:200])
-            raise
-        except httpx.RequestError as e:
-            logger.error("open-meteo %s: network error — %r", name, e)
-            raise
+                if 200 <= response.status_code <= 299:
+                    save_api_call(con, "open-meteo", name, response.status_code, response.text)
 
-        save_api_call(con, "open-meteo", name, response.status_code, response.text)
-        
-        if name != last_name:
-            time.sleep(1)
-        
-    con.close()
+                else:
+                    response.raise_for_status()
+
+            except httpx.HTTPStatusError as e:
+                logger.error("open-meteo %s: HTTP %s — %s", name, e.response.status_code, e.response.text[:200])
+                raise
+
+            except httpx.RequestError as e:
+                logger.error("open-meteo %s: network error — %r", name, e)
+                raise
+
+            if name != last_name:
+                time.sleep(1)
+
+    finally:
+        con.close()
 
 
 if __name__ == "__main__":
